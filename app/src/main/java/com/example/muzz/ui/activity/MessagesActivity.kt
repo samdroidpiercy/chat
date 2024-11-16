@@ -4,45 +4,43 @@ import ChatScreen
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.background
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.muzz.ui.components.AppTopBar
 import com.example.muzz.ui.theme.MuzzTheme
 import com.example.muzz.ui.viewmodel.ChatViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
+/**
+ * The main activity for the chat feature.
+ *
+ * This activity serves as the entry point for the chat screen, setting up the theme,
+ * top app bar, and chat UI. It uses Jetpack Compose for the UI and integrates with Hilt for
+ * dependency injection of the ViewModel.
+ */
 @AndroidEntryPoint
 class MessagesActivity : ComponentActivity() {
 
+    // Injects the ChatViewModel using Hilt and Jetpack's viewModels delegate
     private val chatViewModel: ChatViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            ChatScreen(chatViewModel)
+            // Apply the app's theme
+            MuzzTheme {
+                // Scaffold provides the structure for the app's layout
+                Scaffold(
+                    modifier = Modifier.background(MaterialTheme.colorScheme.background), // Set background color
+                    topBar = { AppTopBar() } // Displays the app's top bar
+                ) { padding ->
+                    // The main chat screen, with padding applied from the Scaffold
+                    ChatScreen(chatViewModel, padding)
+                }
+            }
         }
-    }
-}
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    MuzzTheme {
-        Greeting("Android")
     }
 }

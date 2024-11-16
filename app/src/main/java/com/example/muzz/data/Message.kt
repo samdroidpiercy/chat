@@ -7,6 +7,10 @@ import androidx.room.PrimaryKey
 data class Message(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val content: String,
-    val sender: String,
+    val status: MessageStatus,
     val timestamp: Long
 )
+
+enum class MessageStatus {
+    SENT, RECEIVED
+}
