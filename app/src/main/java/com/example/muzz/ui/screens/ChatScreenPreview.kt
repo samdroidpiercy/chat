@@ -12,6 +12,7 @@ import com.example.muzz.data.MessageRepositoryImpl
 import com.example.muzz.data.MessageStatus
 import com.example.muzz.ui.viewmodel.ChatViewModel
 import com.example.muzz.ui.viewmodel.MessageUIState
+import com.example.muzz.util.DefaultTimeProvider
 
 @Preview(showBackground = true)
 @Composable
@@ -19,7 +20,7 @@ fun ChatScreenPreview() {
     ChatScreen(viewModel = FakeChatViewModel(), paddingValues = PaddingValues())
 }
 
-class FakeChatViewModel : ChatViewModel(repository = MessageRepositoryImpl(FakeMessagesDao())) {
+class FakeChatViewModel : ChatViewModel(repository = MessageRepositoryImpl(FakeMessagesDao()), timeProvider = DefaultTimeProvider()) {
     override val uiState: LiveData<List<MessageUIState>> = MutableLiveData(
         listOf(
             MessageUIState(Message(1, "Hello!", MessageStatus.SENT, System.currentTimeMillis() - 3), "Today 10:30", true),
@@ -29,7 +30,7 @@ class FakeChatViewModel : ChatViewModel(repository = MessageRepositoryImpl(FakeM
         )
     )
 
-    override fun sendMessage(content: String, status: MessageStatus) {
+    override fun sendMessage(content: String) {
         //no op for preview
     }
 

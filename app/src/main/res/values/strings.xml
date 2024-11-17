@@ -1,5 +1,5 @@
 <resources>
     <string name="app_name">Muzz</string>
-    <string name="chat_title">Boring Bot</string>
+    <string name="chat_title">Scramble Bot</string>
     <string name="content_description_send">Send</string>
 </resources>

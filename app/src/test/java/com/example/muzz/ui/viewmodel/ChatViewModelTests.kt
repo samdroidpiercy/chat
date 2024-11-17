@@ -6,12 +6,15 @@ import androidx.lifecycle.Observer
 import com.example.muzz.data.Message
 import com.example.muzz.data.MessageRepository
 import com.example.muzz.data.MessageStatus
+import com.example.muzz.util.DefaultTimeProvider
+import com.example.muzz.util.TimeProvider
 import io.mockk.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.*
 import org.junit.*
 import org.junit.rules.TestRule
+import java.util.Stack
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ChatViewModelTest {
@@ -23,6 +26,7 @@ class ChatViewModelTest {
     private lateinit var repository: MessageRepository
     private val testDispatcher = StandardTestDispatcher()
     private val liveDataMessages = MutableLiveData<List<Message>>(emptyList())
+    private var currentTimeMillis = System.currentTimeMillis()
 
     @Before
     fun setUp() {
@@ -32,7 +36,7 @@ class ChatViewModelTest {
             every { allMessages } returns liveDataMessages
         }
 
-        viewModel = ChatViewModel(repository)
+        viewModel = ChatViewModel(repository, DefaultTimeProvider())
     }
 
     @After
@@ -162,5 +166,105 @@ class ChatViewModelTest {
 
         // First message should have a timestamp
         Assert.assertNotNull(uiStates[0].timestamp)
+    }
+
+    @Test
+    fun `sendMessage triggers scrambled auto-reply after 5 seconds of inactivity`() = runTest {
+
+        viewModel = ChatViewModel(repository,  object: TimeProvider{
+            override fun currentTimeMillis(): Long {
+                //Roll the current time on by 5 seconds everytime
+                currentTimeMillis += 5001
+                return currentTimeMillis
+            }
+
+        })
+
+        // Arrange
+        val userMessage = "Hello World"
+        val messageSlot = slot<Message>()
+        coEvery { repository.insertMessage(capture(messageSlot)) } just Runs
+
+        // Act
+        viewModel.sendMessage(userMessage) // Trigger the auto-reply indirectly
+        advanceTimeBy(5001) // Simulate 5 seconds passing
+        advanceUntilIdle()
+
+        // Assert
+        coVerify(exactly = 2) { repository.insertMessage(any()) } // One for the user's message, one for the reply
+
+        val sentMessages = messageSlot.captured.content
+
+        // Verify that the auto-reply is scrambled
+        Assert.assertNotEquals(userMessage, sentMessages) // Scrambled message should differ
+        Assert.assertEquals(userMessage.length, sentMessages.length) // Length should match
+        Assert.assertTrue(sentMessages.toList().sorted() == userMessage.toList().sorted()) // Same characters
+    }
+
+    @Test
+    fun `sendMessage cancels auto-reply if another message is sent within 5 seconds`() = runTest {
+
+        val currentTimeStack = Stack<Long>()
+
+        //set up time stack so gap between messages is less that 5 seconds, tricky logic this, as the
+        //messages send before either autoreply block is reached
+        currentTimeStack.push(90001L)
+        currentTimeStack.push(5000L)
+        currentTimeStack.push(4000L)
+        currentTimeStack.push(1000L)
+
+        viewModel = ChatViewModel(repository, object : TimeProvider {
+            override fun currentTimeMillis(): Long {
+                // Roll the current time on by 5 seconds every time
+                return currentTimeStack.pop()
+            }
+        })
+
+        // Arrange
+        val firstMessage = "Hello World"
+        val secondMessage = "How are you?"
+        coEvery { repository.insertMessage(any()) } just Runs
+
+        // Act
+        viewModel.sendMessage(firstMessage) // First message triggers auto-reply
+        advanceTimeBy(3000) // Simulate 3 seconds passing
+        viewModel.sendMessage(secondMessage) // Second message sent within 5 seconds
+        advanceTimeBy(5001) // Simulate another 5 seconds passing
+        advanceUntilIdle()
+
+        // Assert
+        coVerify(exactly = 3) { repository.insertMessage(any()) } // Only 3 messages: the two sent messages and one received
+    }
+
+    @Test
+    fun `sendMessage triggers auto-reply if no further messages are sent`() = runTest {
+
+        viewModel = ChatViewModel(repository, object : TimeProvider {
+            override fun currentTimeMillis(): Long {
+                // Roll the current time on by 5 seconds every time
+                currentTimeMillis += 5001
+                return currentTimeMillis
+            }
+        })
+
+        // Arrange
+        val userMessage = "Hello!"
+        val messageSlot = slot<Message>()
+        coEvery { repository.insertMessage(capture(messageSlot)) } just Runs
+
+        // Act
+        viewModel.sendMessage(userMessage) // Trigger the auto-reply indirectly
+        advanceTimeBy(5001) // Simulate 5 seconds passing
+        advanceUntilIdle()
+
+        // Assert
+        coVerify(exactly = 2) { repository.insertMessage(any()) } // One for the user, one for auto-reply
+
+        val sentMessages = messageSlot.captured.content
+
+        // Verify that the auto-reply is scrambled
+        Assert.assertNotEquals(userMessage, sentMessages) // Scrambled message should differ
+        Assert.assertEquals(userMessage.length, sentMessages.length) // Length should match
+        Assert.assertTrue(sentMessages.toList().sorted() == userMessage.toList().sorted()) // Same characters
     }
 }
