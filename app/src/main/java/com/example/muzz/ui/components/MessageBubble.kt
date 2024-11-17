@@ -2,13 +2,19 @@ package com.example.muzz.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.muzz.data.Message
@@ -26,33 +32,83 @@ import com.example.muzz.ui.theme.PlusJakartaSans
  * @param message The Message object containing the content and metadata (e.g., status).
  */
 @Composable
-fun MessageBubble(message: Message) {
-    // Determine alignment based on message status (sent vs received)
-    val alignment = if (message.status == MessageStatus.SENT) Arrangement.End else Arrangement.Start
+fun MessageBubble(message: Message, timestamp: String? = null, smallGap: Boolean) {
+    val isSent = message.status == MessageStatus.SENT
 
-    Row(
+    //sent messages align to the right, received to the left for LTR layouts
+    val alignment = if (isSent) Arrangement.End else Arrangement.Start
+
+    Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 8.dp, vertical = 4.dp),
-        horizontalArrangement = alignment
+            .padding(
+                top = if (smallGap) 4.dp else 12.dp,
+                end = if (isSent) 0.dp else 48.dp,
+                start = if (isSent) 48.dp else 0.dp
+            )
     ) {
-        Text(
-            text = message.content,
-            fontFamily = PlusJakartaSans, // Use the custom font family
-            color = if (message.status == MessageStatus.SENT) Colour.Text.SentMessage else Colour.Text.ReceivedMessage, // Set text color based on status
-            fontSize = 16.sp,
+        timestamp?.let {
+
+            val styledTimestamp = styleTimestamp(it)
+
+            Text(
+                text = styledTimestamp,
+                fontSize = 12.sp,
+                color = Colour.Text.MessageTimestamp,
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
+                    .padding(bottom = 8.dp)
+            )
+        }
+
+        Row(
             modifier = Modifier
-                // Set the background color and shape of the message bubble
-                .background(
-                    color = if (message.status == MessageStatus.SENT) Colour.Background.SentMessage else Colour.Background.ReceivedMessage,
-                    shape = RoundedCornerShape(
-                        topStart = 16.dp, // Rounded corners at the top
-                        topEnd = 16.dp,
-                        bottomStart = if (message.status == MessageStatus.RECEIVED) 0.dp else 16.dp, // Gives speech bubble effect for received messages
-                        bottomEnd = if (message.status == MessageStatus.SENT) 0.dp else 16.dp // Gives speech bubble effect for sent messages
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp),
+            horizontalArrangement = alignment
+        ) {
+            Text(
+                text = message.content,
+                fontFamily = PlusJakartaSans, // Use the custom font family
+                color = if (isSent) Colour.Text.SentMessage else Colour.Text.ReceivedMessage,
+                fontSize = 16.sp,
+                modifier = Modifier // Set the background color and shape of the message bubble
+                    .background(
+                        color = if (isSent) Colour.Background.SentMessage else Colour.Background.ReceivedMessage,
+                        shape = RoundedCornerShape(
+                            topStart = 16.dp, // Rounded corners at the top
+                            topEnd = 16.dp,
+                            bottomStart = if (!isSent) 0.dp else 16.dp, // Gives speech bubble effect for received messages
+                            bottomEnd = if (isSent) 0.dp else 16.dp // Gives speech bubble effect for sent messages
+                        )
                     )
-                )
-                .padding(horizontal = 12.dp, vertical = 8.dp) // Padding inside the bubble to match example screenshot
+                    .padding(horizontal = 12.dp, vertical = 8.dp) // Padding inside the bubble to match example screenshot
+            )
+        }
+    }
+}
+
+/**
+ * @param
+ */
+@Composable
+private fun styleTimestamp(timestamp: String) = buildAnnotatedString {
+    val parts = timestamp.split(" ")
+    if (parts.size == 2) {
+        append(
+            AnnotatedString(
+                text = parts[0], // Day
+                spanStyle = SpanStyle(fontWeight = FontWeight.Bold)
+            )
         )
+        append(" ") // Space
+        append(
+            AnnotatedString(
+                text = parts[1],
+                spanStyle = SpanStyle(fontWeight = FontWeight.Normal)
+            )
+        )
+    } else {
+        append(timestamp) // Fallback
     }
 }

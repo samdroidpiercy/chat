@@ -34,6 +34,7 @@ object Colour {
     object Text {
         val SentMessage = LavenderBlush // Text color for sent messages
         val ReceivedMessage = ShuttleGray // Text color for received messages
+        val MessageTimestamp = HitGray // Text color for message timestamps
     }
 
     /**
@@ -64,3 +65,4 @@ val LavenderBlush = Color(0xFFFFEDF3)
 val TickleMePink = Color(0xFFFC88A2)
 val BitterSweet = Color(0xFFFD6D64)
 val LobLolly = Color(0xFFBFC5CC)
+val HitGray = Color(0xFFA9B2B9)

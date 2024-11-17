@@ -22,18 +22,15 @@ import kotlinx.coroutines.launch
  */
 @Composable
 fun ChatScreen(viewModel: ChatViewModel = viewModel(), paddingValues: PaddingValues) {
-    // Observes the messages from the ViewModel as a state
-    val messages by viewModel.messages.observeAsState(emptyList())
 
-    // Maintains the state of the LazyColumn's scroll position
+    val uiState by viewModel.uiState.observeAsState(emptyList())
     val listState = rememberLazyListState()
 
     // Creates a coroutine scope for triggering scroll animations
     val coroutineScope = rememberCoroutineScope()
 
-    // Scroll to the latest message when the list of messages changes
-    LaunchedEffect(messages.size) {
-        if (messages.isNotEmpty()) {
+    LaunchedEffect(uiState.size) {
+        if (uiState.isNotEmpty()) {
             listState.animateScrollToItem(0)
         }
     }
@@ -42,26 +39,27 @@ fun ChatScreen(viewModel: ChatViewModel = viewModel(), paddingValues: PaddingVal
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(paddingValues) // Apply external padding from Scaffold
+            .padding(paddingValues)  // Apply external padding from Scaffold
     ) {
-        // Displays the list of messages in a vertically scrollable LazyColumn
         LazyColumn(
             modifier = Modifier.weight(1f), // Allows the column to fill available space
             state = listState, // Maintains scroll state
-            reverseLayout = true, // Reverses the order so latest messages appear at the bottom
-            contentPadding = PaddingValues(vertical = 8.dp, horizontal = 16.dp), // Padding around the list
-            verticalArrangement = Arrangement.Top // Aligns items to the top
+            reverseLayout = true,  // Reverses the order so latest messages appear at the bottom
+            contentPadding = PaddingValues(vertical = 8.dp, horizontal = 16.dp),
+            verticalArrangement = Arrangement.Top
         ) {
             // Displays each message using the MessageBubble composable
-            items(messages.asReversed()) { message ->
-                MessageBubble(message = message)
+            items(uiState.asReversed()) { messageUIState ->
+                MessageBubble(
+                    message = messageUIState.message,
+                    timestamp = messageUIState.timestamp,
+                    smallGap = messageUIState.smallGap
+                )
             }
         }
 
-        // Input field for sending new messages
         ChatInput(
             onSend = { content ->
-                // Sends the new message via the ViewModel
                 viewModel.sendMessage(content)
                 // Scrolls to the latest message after sending
                 coroutineScope.launch {

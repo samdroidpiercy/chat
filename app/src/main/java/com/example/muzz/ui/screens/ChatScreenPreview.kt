@@ -11,6 +11,7 @@ import com.example.muzz.data.MessageDao
 import com.example.muzz.data.MessageRepositoryImpl
 import com.example.muzz.data.MessageStatus
 import com.example.muzz.ui.viewmodel.ChatViewModel
+import com.example.muzz.ui.viewmodel.MessageUIState
 
 @Preview(showBackground = true)
 @Composable
@@ -19,12 +20,12 @@ fun ChatScreenPreview() {
 }
 
 class FakeChatViewModel : ChatViewModel(repository = MessageRepositoryImpl(FakeMessagesDao())) {
-    override val messages: LiveData<List<Message>> = MutableLiveData(
+    override val uiState: LiveData<List<MessageUIState>> = MutableLiveData(
         listOf(
-            Message(1, "Hello!", MessageStatus.SENT, System.currentTimeMillis() - 3),
-            Message(2, "Hi there!", MessageStatus.RECEIVED, System.currentTimeMillis() - 2),
-            Message(3, "How's it going?", MessageStatus.SENT, System.currentTimeMillis() - 1),
-            Message(4, "Good! And you?",  MessageStatus.RECEIVED, System.currentTimeMillis()),
+            MessageUIState(Message(1, "Hello!", MessageStatus.SENT, System.currentTimeMillis() - 3), "Today 10:30", true),
+            MessageUIState(Message(1, "Hello!", MessageStatus.RECEIVED, System.currentTimeMillis() - 3), null, true),
+            MessageUIState(Message(1, "Hello!", MessageStatus.SENT, System.currentTimeMillis() - 3), null, true),
+            MessageUIState(Message(1, "Hello!", MessageStatus.RECEIVED, System.currentTimeMillis() - 3), null, true),
         )
     )
 
