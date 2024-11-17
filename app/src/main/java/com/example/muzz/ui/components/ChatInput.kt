@@ -19,6 +19,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
@@ -55,6 +57,8 @@ fun ChatInput(
             .padding(16.dp)
     ) {
         // BasicTextField for entering message content, OutlinedTextField was not malleable enough for this
+        val messageInputDescription = stringResource(id = R.string.content_description_message_input)
+        // BasicTextField for entering message content, OutlinedTextField was not malleable enough for this
         BasicTextField(
             value = text,
             onValueChange = { text = it },
@@ -66,7 +70,8 @@ fun ChatInput(
                     color = if (isTextEmpty) Colour.Border.TextEntryEmpty else Colour.Border.TextEntry,
                     shape = RoundedCornerShape(50) // Gives the text field rounded edges
                 )
-                .padding(horizontal = 16.dp),
+                .padding(horizontal = 16.dp)
+                .semantics { contentDescription = messageInputDescription },
             keyboardOptions = KeyboardOptions(
                 imeAction = ImeAction.Send, // "Send" action for the keyboard
                 keyboardType = KeyboardType.Text

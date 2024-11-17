@@ -10,6 +10,18 @@ android {
     namespace = "com.example.muzz"
     compileSdk = 34
 
+    packaging {
+        resources {
+            excludes += listOf(
+                "META-INF/LICENSE.md",
+                "META-INF/LICENSE.txt",
+                "META-INF/LICENSE-notice.md",
+                "META-INF/NOTICE.md",
+                "META-INF/NOTICE.txt"
+            )
+        }
+    }
+
     defaultConfig {
         applicationId = "com.example.muzz"
         minSdk = 24
@@ -77,16 +89,28 @@ dependencies {
     implementation(libs.androidx.lifecycle.compose)
     implementation(libs.google.dagger.hilt.android)
     implementation(libs.androidx.room.ktx)
+
+    debugImplementation(libs.compose.ui.tooling)
+    debugImplementation(libs.compose.ui.test.manifest)
+
     kapt(libs.google.dagger.hilt.compiler)
     ksp(libs.androidx.room.compiler)
+
+    testImplementation(libs.junit)
     testImplementation(libs.junit)
     testImplementation(libs.mockk)
     testImplementation(libs.androidx.core.testing)
     testImplementation(libs.coroutines.testing)
+
+    androidTestImplementation(libs.androidx.junit)
+    androidTestImplementation(libs.hilt.android.testing)
+    androidTestImplementation(libs.compose.ui.test)
+    androidTestImplementation(libs.mockk.android)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
+
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 }
