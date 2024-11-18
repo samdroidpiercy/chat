@@ -2,9 +2,8 @@
 **General Approach**
 
  - Spent a couple of hours a day on 3 separate days around other   
-   responsibilities.
-	- I started small and iterated using these steps:
-   	Started with a skeleton implementation of the view with solo
+   responsibilities. I started small and iterated using these steps:
+	- Started with a skeleton implementation of the view with solo
    messages. 	
    - Tidied up the view to try and match the designs.
    - Added logic and view changes for gapping and timestamps. 
